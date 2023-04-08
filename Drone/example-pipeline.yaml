@@ -1,0 +1,26 @@
+kind: pipeline
+type: kubernetes
+name: demo3
+
+trigger:
+  ref:
+    - refs/heads/master
+    - refs/heads/main
+  branch:
+    - main
+    - bugfix/*
+    - feature/*
+steps:
+#  - name: Maven test
+#    image: maven:3.9.0-eclipse-temurin-19
+#    commands:
+#      - mvn test -q
+  - name: Maven build
+    image: maven:3.9.0-eclipse-temurin-19
+    commands:
+      - mvn clean package -q
+  - name: Build image
+    image: gcr.io/kaniko-project/executor:v1.9.0-debug
+    commands:
+      - cp $DRONE_WORKSPACE/config.json /kaniko/.docker/
+      - /kaniko/executor --dockerfile $DRONE_WORKSPACE/Dockerfile --context $DRONE_WORKSPACE --insecure --destination core.harbor.internal/openweb/drone-demo:1.0
